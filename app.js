@@ -5,12 +5,11 @@ const bodyParser = require('body-parser')
 const app = exprees()
 app.use(bodyParser.json())
 
-// Configuring the database
 connectDB();
-const ticket=require("./database/ticket.js")
+const ticket=require("./route/createticket.js")
 const apiRoutes = require("./route/ticket.js")
 const user = require('./database/user.js')
-const bus=require("./database/bus.js")
+const bus=require("./route/bus.js")
 app.use('/api', apiRoutes)
 app.use('/api', user)
 app.use('/api',bus)

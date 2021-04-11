@@ -103,18 +103,5 @@ router.post('/login',[
 
 
 })
-// get data of Admin or user using token
-router.get('/auth',auth,async(req,res) =>{
-    try{
-
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user)
-    }catch(err){
-        console.log(err)
-        res.status(500).send('server error')
-
-    }
-})
-
 
 module.exports = router

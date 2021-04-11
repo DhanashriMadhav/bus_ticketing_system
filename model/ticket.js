@@ -1,6 +1,5 @@
-const mongoose = require('mongoose')
-// const User = require('./user.js')
-// const Bus = require('./Bus.js')
+const mongoose = require('mongoose');
+
 const uniqueValidator = require('mongoose-unique-validator');
 const TicketSchema = new mongoose.Schema({
       

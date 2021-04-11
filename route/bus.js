@@ -5,25 +5,25 @@ const auth = require('../middleware/auth.js')
 const validation=require("../validation/busvalidation.js")
 const busValidation = validation.busValidation
 
-
 const router = express.Router()
 
 router.post('/bus',auth,async(req,res)=>{
     
     let [result, data] = busValidation(req.body)
-    if (!result) return res.status(404).json({data})
+    if (!result) return res.status(400).json({data})
     try{ 
-        // const user=req.user.id
+
         const user=await User.findById(req.user.id)
-        const isAdmin=user.isAdmin
-        console.log(isAdmin)
+        let isAdmin=user.isAdmin
         if(isAdmin===true){ 
             const bus =new Bus(req.body)
             const newbus =await bus.save()
-            if(newbus){
-                return res.send(bus.id);
+            if(newbus)
+            {
+                const busId=bus.id
+                return res.status(200).json({msg:"Bus Id is",busId})
             }else{
-                return res.send({"error":"something went wrong"})
+                return res.status(401).send({"error":"Bus number has to be unique"})
             }
         }
         else{

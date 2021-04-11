@@ -74,8 +74,8 @@ router.get('/closed/:busId', async(req, res) => {
         }
         else{
         
-            let tickets =await Ticket.find({busId,isBooked:fales})
-            return res.status(200).json({msg:"List of all open ticket",tickets})
+            let tickets =await Ticket.find({busId,isBooked:true})
+            return res.status(200).json({msg:"List of all closed ticket",tickets})
             
         }      
     }
@@ -95,7 +95,7 @@ router.get('/open/:busId', async(req, res) => {
        }
        else{
             const tickets =await Ticket.find({busId,isBooked:false})
-            return res.status(200).json({msg:"List of all closed tickets",tickets})
+            return res.status(200).json({msg:"List of all open tickets",tickets})
        }      
     }
     catch(err){
