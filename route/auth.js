@@ -1,6 +1,5 @@
 const express = require('express')
 const User = require('../model/user.js')
-const auth = require('../middleware/auth.js')
 const jwt=require("jsonwebtoken")
 const bcrypt=require("bcryptjs")
 const config=require("../config/config.json")
@@ -53,7 +52,7 @@ router.post('/singup', async(req,res)=>{
 
     }catch(error){
         console.log(error)
-        res.status(500).send('server error')
+        res.status(500).send('EmailId has be unique')
     }
 
     

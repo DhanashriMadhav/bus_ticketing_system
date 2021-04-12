@@ -1,9 +1,12 @@
 const express = require('express')
 const Bus = require('../model/Bus.js')
 const User = require('../model/user.js')
+const Ticket = require('../model/ticket.js')
 const auth = require('../middleware/auth.js')
 const validation=require("../validation/busvalidation.js")
 const busValidation = validation.busValidation
+const validations=require("../validation/ticketvalidation.js")
+const ticketValidation = validations.ticketValidation
 
 const router = express.Router()
 
@@ -22,9 +25,8 @@ router.post('/bus',auth,async(req,res)=>{
             {
                 const busId=bus.id
                 return res.status(200).json({msg:"Bus Id is",busId})
-            }else{
-                return res.status(401).send({"error":"Bus number has to be unique"})
             }
+          
         }
         else{
             return res.status(400).json({msg:"enter the valid admin token"})
@@ -33,11 +35,58 @@ router.post('/bus',auth,async(req,res)=>{
     }
     catch(err) {
         console.log(err)
-        res.status(404).send('some server error')
+        return res.status(401).send({"error":"Bus number has to be unique"})
+
     }
        
 }),
 
+//create ticket
+router.post('/tickets',auth,async(req,res)=>{
+
+    let [result, data] = ticketValidation(req.body)
+    if (!result) return res.status(400).json({data})
+  
+    try{
+        const user=await User.findById(req.user.id)
+        const isAdmin=user.isAdmin
+        if(isAdmin===true)
+        {
+        const busId=req.body.busId
+        let bus = await Bus.findById(busId)
+        if(!bus){
+            return res.status(404).json({msg:"bus not found"})
+        }
+        let busid= await Ticket.findOne({busId})
+        if(busid)
+        {
+            return res.status(404).json({msg:"Tickets aleardy created for this bus"})
+        }
+        else{
+                const numberOfseats=bus.numberOfseats
+                const ticketlist=[]   
+                for(i=1;i<=numberOfseats;i++)
+                {
+                    const ticketObj={}
+                    ticketObj.seatNo=i;
+                    ticketObj.isBooked=false;
+                    ticketObj.costOfticket=req.body.costOfticket;
+                    ticketObj.busId=req.body.busId;
+                    ticketlist.push(ticketObj)
+                }
+                await Ticket.insertMany(ticketlist)
+                return res.status(200).json({msg:"Ticket created succesfully"}) 
+            }            
+        }
+        else{
+            return res.status(400).json({msg:"Enter the valid token"})
+        }            
+    }catch(err){
+        console.log(err)
+        res.status(500).json("sever error")
+    }
+
+})
 
 
 module.exports = router
