@@ -71,7 +71,7 @@ router.post('/login',[
     const {email,password}=req.body;
     try{
         //see user exite
-        let user = await User.findOne({email });
+        let user = await User.findOne({email});
         if(!user){
             return res.status(400).json({errors:[{msg:"invalid credentials"}]})
         }

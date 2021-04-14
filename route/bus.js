@@ -83,10 +83,57 @@ router.post('/tickets',auth,async(req,res)=>{
         }            
     }catch(err){
         console.log(err)
-        res.status(500).json("sever error")
+        res.status(400).json("sever error")
     }
 
 })
 
+//reset the ticket using ticketId
+router.put('/reset/:busId/:_id',auth,async(req,res)=>{
+    try
+    {
+        const user=await User.findById(req.user.id)
+        const isAdmin=user.isAdmin
+        if(isAdmin===true)
+        {
+            const _id=req.params._id
+            // console.log(_id)
+            const busId=req.params.busId
+            let busid= await Ticket.find({busId})
+            if(busid.length===0)
+            {
+                return res.status(404).json({msg:"Tickets not found for this bus"})
+            }
+            const ticket =await Ticket.find({busId,_id})
+            const isBooked=ticket[0].isBooked
+            const userId=ticket[0].userId
+            if(isBooked===true && userId)
+            {
+                await Ticket.updateOne({busId,_id},{$unset:{userId:""}})
+                await Ticket.updateOne({busId,_id},{$set:{isBooked:false}})
+                return res.status(200).json({msg:"ticket is open "})
+            }
+            else
+            {
+                return res.status(200).json({msg:"Ticket is aleardy open,No need to do reset"})
+            }
+ 
+        }
+        else
+        {
+            return res.status(400).json({msg:"Enter the valid token"})
+        }
+
+
+
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.status(404).json("sever error")
+    }
+
+
+})
 
 module.exports = router

@@ -22,6 +22,7 @@ function ticketValidation(ticket) {
     costOfticket:Joi.number().required(true),
     userId:Joi.string().optional(),
     busId:Joi.string().required(true),
+    user:Joi.string().optional(),
     })
     return validateObj(ticket,ticketSchema)
 }
