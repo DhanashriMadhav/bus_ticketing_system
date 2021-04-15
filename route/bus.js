@@ -104,10 +104,10 @@ router.put('/reset/:busId',auth,async(req,res)=>{
                 return res.status(404).json({msg:"Tickets not found for this bus"})
             }
             const ticket =await Ticket.find({busId,isBooked:true})
-            console.log(ticket)
             if(ticket.length!==0)
             {
                 await Ticket.updateMany({busId},{$unset:{userId:""}})
+                await Ticket.updateMany({busId},{$unset:{user:""}})
                 await Ticket.updateMany({busId},{$set:{isBooked:false}})
                 return res.status(200).json({msg:"Ticket is open to book"})
             }

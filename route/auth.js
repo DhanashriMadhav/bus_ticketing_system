@@ -17,32 +17,33 @@ router.post('/singup', async(req,res)=>{
     try{
            //see user exite
            let user = await User.findOne({email });
-           if(user){
+           if(user)
+           {
                res.status(400).json({errors:[{msg:"user already exits"}]})
            }
 
-           user = new User({
+            user = new User({
             name,
             gender,
             email,
             phoneNo,
             password,
             isAdmin
-        });
-          //encrypt password
-          const salt = await bcrypt.genSalt(10);
+            });
+            //encrypt password
+            const salt = await bcrypt.genSalt(10);
 
-          user.password=await bcrypt.hash(password,salt)
+            user.password=await bcrypt.hash(password,salt)
 
-          await user.save();
+            await user.save();
 
-          //return jsonwebtoken
-          const payload={
-            user:{
+            //return jsonwebtoken
+            const payload={
+              user:{
                 id:user.id
+              }
             }
-        }
-        jwt.sign(payload,
+            jwt.sign(payload,
             config.jwtSecret,
             {expiresIn:360000},(err,token)=>{
                 if(err)throw err;
@@ -81,7 +82,7 @@ router.post('/login',[
         if(!isMatch){
             return res.status(400).json({errors:[{msg:"invalid credentials"}]}) 
         }
-        //return jsonwebtoken for admin
+        //return jsonwebtoken
         const payload={
             user:{
                 id:user.id
