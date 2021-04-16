@@ -25,25 +25,21 @@ const TicketSchema = new mongoose.Schema({
         ref:'Bus',
         require:true,
     },
-    user:{
+    passenger:{
         name:{
-            type: String,
-            required:true
+            type: String, 
         },
         gender:{
             type:String,
-            required:true
         },
         age: {
             type:Number
         },
         phoneNo:{ 
             type: Number,
-            required:true 
         },
         email:{ 
-            type: String, 
-            required:true
+            type: String,
         },
     }
     

@@ -107,9 +107,9 @@ router.put('/reset/:busId',auth,async(req,res)=>{
             if(ticket.length!==0)
             {
                 await Ticket.updateMany({busId},{$unset:{userId:""}})
-                await Ticket.updateMany({busId},{$unset:{user:""}})
+                await Ticket.updateMany({busId},{$unset:{passenger:""}})
                 await Ticket.updateMany({busId},{$set:{isBooked:false}})
-                return res.status(200).json({msg:"Ticket is open to book"})
+                return res.status(200).json({msg:"All tickets are open to book"})
             }
             else
             {
