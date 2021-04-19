@@ -8,7 +8,7 @@ const {check,validationResult}=require("express-validator/check");
 const router=express.Router();
 //Book the ticket
 router.put('/book/:busId',auth,[
-
+    
     check('seatNo','please enter seatNo').not().isEmpty(),
     check('isBooked','please enter isBooked').not().isEmpty(),
     ],async(req,res)=>{
@@ -18,41 +18,55 @@ router.put('/book/:busId',auth,[
             return res.status(400).json({errors: errors});
         }
     try{
+
+        
         const {seatNo,isBooked}=req.body
         const busId = req.params.busId
         const {name,gender,phoneNo,email}=req.body
-        const passenger={name,gender,phoneNo,email}
+        const newuserInfo={name,gender,phoneNo,email}
         const businformation= await Ticket.find({busId})
         if(businformation.length===0)
         {
             return res.status(400).json({msg:"Bus not exist"})
         }
-        const seat=await Ticket.find({busId,seatNo})
+        const seatLeangth=seatNo.length
+        for(i=0;i<=seatLeangth;i++){
+        console.log(i)
+        const seat=await Ticket.find({busId,seatNo:seatNo[i]})
+        console.log(seatNo.length)
         if(seat.length!==0){ 
-            const ticket=await Ticket.find({busId,seatNo,isBooked:true})
+            const ticket=await Ticket.find({busId,seatNo:seatNo[i],isBooked:true})
             if(ticket.length!==0)
             {    
-                return res.status(404).json({msg:"seat is already booked,choose other seat "})
+                res.status(404).json({msg:"seat is already booked,choose other seat "})
             }
             else{
                
                 let userData = await User.findById(req.user.id)
                 if(userData)
                 {
-                    const name=passenger.name
+                    const name=(newuserInfo.name)
                     if(name)
                     {
-                        const newUser={seatNo,isBooked,passenger}
-                        await Ticket.updateOne({busId,seatNo},{$set:newUser})
-                        const bookedtickets= await Ticket.find({busId,seatNo}).populate('busId',[])
-                        return res.status(200).json({msg:"Ticket Booked",bookedtickets})
+                        const passenger=[]
+                        const newUser={}
+                        newUser.name=req.body.name[i];
+                        newUser.gender=req.body.gender[i];
+                        newUser.phoneNo=req.body.phoneNo[i];
+                        newUser.email=req.body.email[i];
+                        passenger.push(newUser)
+                        console.log(passenger)
+                        const userInfo={seatNo:seatNo[i],isBooked,passenger:passenger}
+                        await Ticket.updateOne({busId,seatNo:seatNo[i]},{$set:userInfo})
+                        const bookedtickets= await Ticket.find({busId,seatNo:seatNo[i]}).populate('busId',[])
+                        res.status(200).json({msg:"Ticket Booked",bookedtickets})
                     }
                     else
                     {
                         const userId=userData._id
-                        const userInformation={seatNo,isBooked,userId}
-                        await Ticket.updateOne({busId,seatNo},{$set:userInformation})
-                        const bookedticket= await Ticket.find({busId,seatNo}).populate('busId',[]).populate('userId',['name','phoneNo','email'])
+                        const userInformation={seatNo:seatNo[i],isBooked,userId}
+                        await Ticket.updateOne({busId,seatNo:seatNo[i]},{$set:userInformation})
+                        const bookedticket= await Ticket.find({busId,seatNo:seatNo[i]}).populate('busId',[]).populate('userId',['name','phoneNo','email'])
                         return res.status(200).json({msg:"Ticket Booked",bookedticket})
                     }
                 }
@@ -65,6 +79,7 @@ router.put('/book/:busId',auth,[
         }
         else{
             return res.status(400).json({msg:"Enter valid seat number"})
+        }
         }
     }
     

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const TicketSchema = new mongoose.Schema({
       
-    seatNo: { 
+    seatNo:{ 
         type:Number, 
         max:40
     },

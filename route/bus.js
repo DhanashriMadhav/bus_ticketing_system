@@ -68,7 +68,7 @@ router.post('/tickets',auth,async(req,res)=>{
                 for(i=1;i<=numberOfseats;i++)
                 {
                     const ticketObj={}
-                    ticketObj.seatNo=i;
+                    ticketObj.seatNo=i;     
                     ticketObj.isBooked=false;
                     ticketObj.costOfticket=req.body.costOfticket;
                     ticketObj.busId=req.body.busId;
