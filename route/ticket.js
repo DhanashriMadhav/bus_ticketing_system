@@ -3,90 +3,92 @@ const express = require('express')
 const Ticket = require('../model/ticket.js')
 const Bus= require('../model/Bus.js')
 const User= require('../model/user.js')
-const {check,validationResult}=require("express-validator/check");
+const {body}=require("express-validator/check");
 
 const router=express.Router();
 //Book the ticket
 router.put('/book/:busId',auth,[
+    body('setaNo').not().isEmpty()
+    .withMessage('seatNo is required'),
     
-    check('seatNo','please enter seatNo').not().isEmpty(),
-    check('isBooked','please enter isBooked').not().isEmpty(),
+    body('isBooked').not().isEmpty()
+    .withMessage('isBooeed is required')
     ],async(req,res)=>{
-        const errors =validationResult(req);
-        if(!errors.isEmpty())
-        {
-            return res.status(400).json({errors: errors});
-        }
     try{
-
-        
-        const {seatNo,isBooked}=req.body
-        const busId = req.params.busId
-        const {name,gender,phoneNo,email}=req.body
-        const newuserInfo={name,gender,phoneNo,email}
-        const businformation= await Ticket.find({busId})
-        if(businformation.length===0)
-        {
-            return res.status(400).json({msg:"Bus not exist"})
-        }
-        const seatLeangth=seatNo.length
-        for(i=0;i<=seatLeangth;i++){
-        console.log(i)
-        const seat=await Ticket.find({busId,seatNo:seatNo[i]})
-        console.log(seatNo.length)
-        if(seat.length!==0){ 
-            const ticket=await Ticket.find({busId,seatNo:seatNo[i],isBooked:true})
-            if(ticket.length!==0)
-            {    
-                res.status(404).json({msg:"seat is already booked,choose other seat "})
+            const data=req.body
+            const newUser=data
+            const busId = req.params.busId
+            const businformation= await Ticket.find({busId})
+            if(businformation.length===0)
+            {
+                return res.status(400).json({msg:"Bus not exist"})
             }
-            else{
-               
-                let userData = await User.findById(req.user.id)
-                if(userData)
+            const dataLength=(newUser.data.length)
+            const seat=[]
+            for(i=0;i<dataLength;i++)
+            {
+                seat.push(newUser.data[i].seatNo)
+            }
+            for(i=0;i<seat.length;i++)
+            {    
+                const seats =await Ticket.find({busId,seatNo:seat[i]})
+                if(seats.length===0)
                 {
-                    const name=(newuserInfo.name)
-                    if(name)
+                    return res.status(400).json({msg:"Enter valid seat number"})
+                }
+            }
+            for(i=0;i<seat.length;i++)
+            {
+                const ticket=await Ticket.find({busId,seatNo:seat[i],isBooked:true})
+                if(ticket.length!==0)
+                {    
+                    return res.status(404).json({msg:"seat is already booked,choose other seat "})
+                }
+            }
+            
+            let userData = await User.findById(req.user.id)
+            if(userData)
+            {
+                const ticketList=[]
+                for(i=0;i<seat.length;i++)
+                {
+                    const newData=newUser.data[i]
+
+                    if(newData.name)
                     {
                         const passenger=[]
-                        const newUser={}
-                        newUser.name=req.body.name[i];
-                        newUser.gender=req.body.gender[i];
-                        newUser.phoneNo=req.body.phoneNo[i];
-                        newUser.email=req.body.email[i];
-                        passenger.push(newUser)
-                        console.log(passenger)
-                        const userInfo={seatNo:seatNo[i],isBooked,passenger:passenger}
-                        await Ticket.updateOne({busId,seatNo:seatNo[i]},{$set:userInfo})
-                        const bookedtickets= await Ticket.find({busId,seatNo:seatNo[i]}).populate('busId',[])
-                        res.status(200).json({msg:"Ticket Booked",bookedtickets})
+                        const user={}
+                        user.name=newUser.data[i].name;
+                        user.gender=newUser.data[i].gender;
+                        user.phoneNo=newUser.data[i].phoneNo;
+                        user.email=newUser.data[i].email;
+                        passenger.push(user)
+                        const userInfo={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,passenger:passenger}
+                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:userInfo})
+                    
                     }
                     else
                     {
                         const userId=userData._id
-                        const userInformation={seatNo:seatNo[i],isBooked,userId}
-                        await Ticket.updateOne({busId,seatNo:seatNo[i]},{$set:userInformation})
-                        const bookedticket= await Ticket.find({busId,seatNo:seatNo[i]}).populate('busId',[]).populate('userId',['name','phoneNo','email'])
-                        return res.status(200).json({msg:"Ticket Booked",bookedticket})
+                        const userInformation={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,userId}
+                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:userInformation})
                     }
-                }
-                else
-                {
-                    return res.status(400).send("User not found in user data base,Enter the valid Token")
                     
+                    const bookedticket= await Ticket.find({busId,seatNo:newUser.data[i].seatNo}).populate('busId',[]).populate('userId',['name','phoneNo','email'])
+                    ticketList.push(bookedticket)
                 }
+                res.status(200).json({msg:"Ticket Booked",ticketList})
             }
-        }
-        else{
-            return res.status(400).json({msg:"Enter valid seat number"})
-        }
-        }
+            else
+            {
+                return res.status(400).send("User not found in user data base,Enter the valid Token")
+
+            }
     }
-    
     catch(err){
         res.status(404).json('server error')
         console.log(err)  
-    }
+        }
 })
 
 
