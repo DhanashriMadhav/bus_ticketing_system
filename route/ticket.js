@@ -27,25 +27,38 @@ router.put('/book/:busId',auth,[
             const seat=[]
             for(i=0;i<dataLength;i++)
             {
-                seat.push(newUser.data[i].seatNo)
+                if(seat.includes(newUser.data[i].seatNo))
+                {
+                    const seatNumber=newUser.data[i].seatNo
+                    return res.status(400).json({msg:"Entered seat Number is dupalicate seat number,choose another seat Number",seatNumber})
+                }
+                else
+                {
+                    seat.push(newUser.data[i].seatNo) 
+                }
             }
             for(i=0;i<seat.length;i++)
             {    
                 const seats =await Ticket.find({busId,seatNo:seat[i]})
                 if(seats.length===0)
                 {
-                    return res.status(400).json({msg:"Enter valid seat number"})
+                    return res.status(400).json({msg:"Entered seat number is inavlid",seatNo:seat[i]})
                 }
             }
+            const bookedTicketlist=[]
             for(i=0;i<seat.length;i++)
             {
-                const ticket=await Ticket.find({busId,seatNo:seat[i],isBooked:true})
-                if(ticket.length!==0)
-                {    
-                    return res.status(404).json({msg:"seat is already booked,choose other seat "})
+                const ticket=await Ticket.findOne({busId,seatNo:seat[i],isBooked:true})
+                if(ticket)
+                {  
+                    bookedTicketlist.push(ticket.seatNo) 
                 }
             }
-            
+            if(bookedTicketlist.length!==0)
+            {
+                return res.status(400).json({msg:"This seats are booked,choose another seats",bookedTicketlist})
+
+            }
             let userData = await User.findById(req.user.id)
             if(userData)
             {
@@ -56,25 +69,32 @@ router.put('/book/:busId',auth,[
 
                     if(newData.name)
                     {
-                        const passenger=[]
+                        const passengers=[]
                         const user={}
                         user.name=newUser.data[i].name;
                         user.gender=newUser.data[i].gender;
                         user.phoneNo=newUser.data[i].phoneNo;
                         user.email=newUser.data[i].email;
-                        passenger.push(user)
-                        const userInfo={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,passenger:passenger}
-                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:userInfo})
+                        passengers.push(user)  
+                        const ticketUpadation={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,passenger:passengers}
+                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:ticketUpadation})
                     
                     }
                     else
                     {
                         const userId=userData._id
-                        const userInformation={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,userId}
-                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:userInformation})
+                        const passenger=[]
+                        const user={}
+                        user.name=userData.name;
+                        user.gender=userData.gender;
+                        user.phoneNo=userData.phoneNo;
+                        user.email=userData.email;
+                        passenger.push(user)
+                        const ticketUpadations={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,userId,passenger}
+                        await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:ticketUpadations})
                     }
                     
-                    const bookedticket= await Ticket.find({busId,seatNo:newUser.data[i].seatNo}).populate('busId',[]).populate('userId',['name','phoneNo','email'])
+                    const bookedticket= await Ticket.findOne({busId,seatNo:newUser.data[i].seatNo}).populate('busId',[])
                     ticketList.push(bookedticket)
                 }
                 res.status(200).json({msg:"Ticket Booked",ticketList})
@@ -174,7 +194,8 @@ router.get('/detail/:busId/:_id',auth,async(req,res)=>{
         const busId = req.params.busId
         const  _id  = req.params._id
         const busNo= await Bus.findById(busId)
-        if(!busNo){
+        if(!busNo)
+        {
             return res.status(404).json('bus not exist')
         }
         
