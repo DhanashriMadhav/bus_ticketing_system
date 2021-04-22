@@ -37,26 +37,31 @@ router.put('/book/:busId',auth,[
                     seat.push(newUser.data[i].seatNo) 
                 }
             }
+            const invalidSeatno=[]
             for(i=0;i<seat.length;i++)
             {    
                 const seats =await Ticket.find({busId,seatNo:seat[i]})
                 if(seats.length===0)
                 {
-                    return res.status(400).json({msg:"Entered seat number is inavlid",seatNo:seat[i]})
+                    invalidSeatno.push(seat[i])
                 }
             }
-            const bookedTicketlist=[]
+            if(invalidSeatno.length!==0)
+            {
+                return res.status(400).json({msg:"Entered seat number is inavlid",invalidSeatno})
+            }
+            const bookedSeatlist=[]
             for(i=0;i<seat.length;i++)
             {
                 const ticket=await Ticket.findOne({busId,seatNo:seat[i],isBooked:true})
                 if(ticket)
                 {  
-                    bookedTicketlist.push(ticket.seatNo) 
+                    bookedSeatlist.push(ticket.seatNo) 
                 }
             }
-            if(bookedTicketlist.length!==0)
+            if(bookedSeatlist.length!==0)
             {
-                return res.status(400).json({msg:"This seats are booked,choose another seats",bookedTicketlist})
+                return res.status(400).json({msg:"This seats are booked,choose another seats",bookedSeatlist})
 
             }
             let userData = await User.findById(req.user.id)
