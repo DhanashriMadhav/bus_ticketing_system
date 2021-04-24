@@ -3,7 +3,7 @@ const express = require('express')
 const Ticket = require('../model/ticket.js')
 const Bus= require('../model/Bus.js')
 const User= require('../model/user.js')
-const {body}=require("express-validator/check");
+const {body}=require("express-validator");
 
 const router=express.Router();
 //Book the ticket
@@ -21,48 +21,44 @@ router.put('/book/:busId',auth,[
             const businformation= await Ticket.find({busId})
             if(businformation.length===0)
             {
-                return res.status(400).json({msg:"Bus not exist"})
+                return res.status(400).json({msg:"Ticket not found for this bus"})
             }
             const dataLength=(newUser.data.length)
             const seat=[]
+            const bookedSeatlist=[]
+            const invalidSeatno=[]
             for(i=0;i<dataLength;i++)
             {
+                // checking the seat number is duplicate or not
                 if(seat.includes(newUser.data[i].seatNo))
                 {
-                    const seatNumber=newUser.data[i].seatNo
-                    return res.status(400).json({msg:"Entered seat Number is dupalicate seat number,choose another seat Number",seatNumber})
+                    const duplicateSeatNo=newUser.data[i].seatNo
+                    return res.status(400).json({msg:"Entered seat is dupalicate,choose another seat",duplicateSeatNo})
                 }
                 else
                 {
                     seat.push(newUser.data[i].seatNo) 
-                }
-            }
-            const invalidSeatno=[]
-            for(i=0;i<seat.length;i++)
-            {    
-                const seats =await Ticket.find({busId,seatNo:seat[i]})
-                if(seats.length===0)
-                {
-                    invalidSeatno.push(seat[i])
+                    const seats =await Ticket.findOne({busId,seatNo:seat[i]})
+                    if(!seats)
+                    {
+                        invalidSeatno.push(seat[i])
+                    }
+                    else
+                    {
+                        if(seats.isBooked===true)
+                        {
+                            bookedSeatlist.push(seat[i])
+                        }
+                    }
                 }
             }
             if(invalidSeatno.length!==0)
             {
                 return res.status(400).json({msg:"Entered seat number is inavlid",invalidSeatno})
             }
-            const bookedSeatlist=[]
-            for(i=0;i<seat.length;i++)
-            {
-                const ticket=await Ticket.findOne({busId,seatNo:seat[i],isBooked:true})
-                if(ticket)
-                {  
-                    bookedSeatlist.push(ticket.seatNo) 
-                }
-            }
             if(bookedSeatlist.length!==0)
             {
                 return res.status(400).json({msg:"This seats are booked,choose another seats",bookedSeatlist})
-
             }
             let userData = await User.findById(req.user.id)
             if(userData)
@@ -98,22 +94,19 @@ router.put('/book/:busId',auth,[
                         const ticketUpadations={seatNo:newUser.data[i].seatNo,isBooked:newUser.data[i].isBooked,userId,passenger}
                         await Ticket.updateOne({busId,seatNo:newUser.data[i].seatNo},{$set:ticketUpadations})
                     }
-                    
                     const bookedticket= await Ticket.findOne({busId,seatNo:newUser.data[i].seatNo}).populate('busId',[])
                     ticketList.push(bookedticket)
                 }
-                res.status(200).json({msg:"Ticket Booked",ticketList})
+                return res.status(200).json({msg:"Ticket Booked",ticketList})
             }
             else
             {
-                return res.status(400).send("User not found in user data base,Enter the valid Token")
-
+                return res.status(400).send("User not found in user data base,Enter the valid Token")}
             }
+    catch(err)
+    {
+        res.status(404).json('server error') 
     }
-    catch(err){
-        res.status(404).json('server error')
-        console.log(err)  
-        }
 })
 
 
@@ -215,7 +208,6 @@ router.get('/detail/:busId/:_id',auth,async(req,res)=>{
             const ticket =await Ticket.find({busId,_id}).populate('userId',[])
             if(ticket.length===0)
             {
-                console.log('Ticket not found')
                 return res.status(404).json({msg:'Ticket not found,Enter the valid information'})
             }
             return res.status(200).json({msg:"Deatali of person owning the ticket",ticket})
@@ -232,7 +224,6 @@ router.get('/detail/:busId/:_id',auth,async(req,res)=>{
             if(userId.toString()===userid.toString())
             {
                 const ticketDetail= await Ticket.find(busId,_id).populate('userId',[])
-                console.log(ticketDetail)
                 return res.status(200).json({msg:"Deatali of person owning the ticket",ticketDetail})
             }
             else
