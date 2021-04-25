@@ -1,6 +1,5 @@
 const express = require('express')
 const User = require('../model/user.js')
-const auth = require('../middleware/auth.js')
 const jwt=require("jsonwebtoken")
 const bcrypt=require("bcryptjs")
 const config=require("../config/config.json")
@@ -18,32 +17,33 @@ router.post('/singup', async(req,res)=>{
     try{
            //see user exite
            let user = await User.findOne({email });
-           if(user){
+           if(user)
+           {
                res.status(400).json({errors:[{msg:"user already exits"}]})
            }
 
-           user = new User({
+            user = new User({
             name,
             gender,
             email,
             phoneNo,
             password,
             isAdmin
-        });
-          //encrypt password
-          const salt = await bcrypt.genSalt(10);
+            });
+            //encrypt password
+            const salt = await bcrypt.genSalt(10);
 
-          user.password=await bcrypt.hash(password,salt)
+            user.password=await bcrypt.hash(password,salt)
 
-          await user.save();
+            await user.save();
 
-          //return jsonwebtoken
-          const payload={
-            user:{
+            //return jsonwebtoken
+            const payload={
+              user:{
                 id:user.id
+              }
             }
-        }
-        jwt.sign(payload,
+            jwt.sign(payload,
             config.jwtSecret,
             {expiresIn:360000},(err,token)=>{
                 if(err)throw err;
@@ -53,7 +53,7 @@ router.post('/singup', async(req,res)=>{
 
     }catch(error){
         console.log(error)
-        res.status(500).send('server error')
+        res.status(500).send('EmailId has be unique')
     }
 
     
@@ -72,7 +72,7 @@ router.post('/login',[
     const {email,password}=req.body;
     try{
         //see user exite
-        let user = await User.findOne({email });
+        let user = await User.findOne({email});
         if(!user){
             return res.status(400).json({errors:[{msg:"invalid credentials"}]})
         }
@@ -82,7 +82,7 @@ router.post('/login',[
         if(!isMatch){
             return res.status(400).json({errors:[{msg:"invalid credentials"}]}) 
         }
-        //return jsonwebtoken for admin
+        //return jsonwebtoken
         const payload={
             user:{
                 id:user.id
@@ -103,18 +103,5 @@ router.post('/login',[
 
 
 })
-// get data of Admin or user using token
-router.get('/auth',auth,async(req,res) =>{
-    try{
-
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user)
-    }catch(err){
-        console.log(err)
-        res.status(500).send('server error')
-
-    }
-})
-
 
 module.exports = router

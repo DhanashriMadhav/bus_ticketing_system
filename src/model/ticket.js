@@ -1,10 +1,9 @@
-const mongoose = require('mongoose')
-// const User = require('./user.js')
-// const Bus = require('./Bus.js')
+const mongoose = require('mongoose');
+
 const uniqueValidator = require('mongoose-unique-validator');
 const TicketSchema = new mongoose.Schema({
       
-    seatNo: { 
+    seatNo:{ 
         type:Number, 
         max:40
     },
@@ -25,7 +24,25 @@ const TicketSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:'Bus',
         require:true,
+    },
+    passenger:{
+        name:{
+            type: String, 
+        },
+        gender:{
+            type:String,
+        },
+        age: {
+            type:Number
+        },
+        phoneNo:{ 
+            type: Number,
+        },
+        email:{ 
+            type: String,
+        },
     }
+    
 },
 {
     timestamps: true
@@ -36,4 +53,4 @@ TicketSchema.plugin(uniqueValidator, {
 });
 
 
-module.exports = mongoose.model('Ticket', TicketSchema)      
+module.exports = mongoose.model('Ticket', TicketSchema);     
