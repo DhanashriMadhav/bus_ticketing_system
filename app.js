@@ -1,5 +1,5 @@
 const exprees= require("express");
-const connectDB =require("./config/db.js");
+const connectDB =require("./src/config/db.js");
 const bodyParser = require('body-parser')
 
 const app = exprees()
@@ -7,9 +7,9 @@ app.use(bodyParser.json())
 
 connectDB();
 
-const apiRoutes = require("./route/ticket.js")
-const user = require('./route/auth.js')
-const bus=require("./route/bus.js")
+const apiRoutes = require("./src/route/ticket.js")
+const user = require('./src/route/auth.js')
+const bus=require("./src/route/bus.js")
 app.use('/api', apiRoutes)
 app.use('/api', user)
 app.use('/api',bus)
