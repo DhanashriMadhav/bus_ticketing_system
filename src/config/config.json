@@ -1,5 +1,5 @@
 {
-    "mongooURI":"mongodb+srv://siddhapureshubhangi:siddhapure@cluster0.mgvgz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "mongooURI":"mongodb+srv://busticket:busticket@busticket.whryj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
     "jwtSecret":"mysecrettoken"
     
 }
